@@ -1,0 +1,59 @@
+Household Services Application - V2
+It is a multi-user app (requires one admin and other service professionals/ customers) 
+which acts as platform for providing comprehensive home servicing and solutions.
+Frameworks to be used
+These are the mandatory frameworks on which the project has to be built.
+SQLite for data storage
+Flask for API
+VueJS for UI
+VueJS Advanced with CLI (only if required, not necessary)
+Jinja2 templates if needed (Not to be used for UI)
+Bootstrap for HTML generation and styling (No other CSS framework is allowed)
+SQLite for database (No other database is permitted)
+Redis for caching
+Redis and Celery for batch jobs
+
+
+Roles
+The platform will have three roles;
+Admin - root access - it is a superuser of the app and requires no registration.
+Admin login redirects to the admin dashboard
+Admin will monitor all the users (customers/service professionals)
+Admin will create a new service with a base price
+Admin will approve a service professional after verification of profile docs
+Admin will block customer/service professionals based on fraudulent activity/poor reviews
+Other operations*
+
+Service Professional - An individual that provides the service
+Login/Register
+Service professionals will accept/reject a request
+Each professional may have;
+ID
+Name
+Date created
+Description
+service_type
+Experience
+etc.
+One professional is good at one of the services only
+He/she can accept/reject an assigned service request
+Professional profiles are visible based on customer reviews
+The professional will exit the location after the service is closed by the customer
+
+
+Customer - an individual who has to book a service request
+Login/Register
+View/Search the service by the name/location pin code
+Open/close a service request
+He/she can post reviews/remarks on the closed service
+Others
+
+Terminologies
+Service - It refers to the type of service that the customer is looking for e.g AC servicing, plumbing etc.
+Each service may have;
+ID
+Name
+Price
+Time required
+Description etc.
+

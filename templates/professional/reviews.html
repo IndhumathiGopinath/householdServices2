@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+
+{% block title %}My Reviews - Household Services{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>My Reviews</h1>
+    <a href="{{ url_for('professional.dashboard') }}" class="btn btn-outline-secondary">
+        <i class="fas fa-arrow-left me-1"></i> Back to Dashboard
+    </a>
+</div>
+
+<div class="card mb-4">
+    <div class="card-body text-center">
+        <div class="display-4 text-warning mb-2">
+            {% set avg_rating_int = avg_rating|round|int %}
+            {% for i in range(avg_rating_int) %}
+                <i class="fas fa-star"></i>
+            {% endfor %}
+            {% for i in range(5 - avg_rating_int) %}
+                <i class="far fa-star"></i>
+            {% endfor %}
+        </div>
+        <h2>{{ avg_rating|round(1) }}/5.0</h2>
+        <p class="text-muted">Based on {{ reviews|length }} reviews</p>
+    </div>
+</div>
+
+{% if reviews %}
+<div class="row">
+    {% for review in reviews %}
+    <div class="col-md-6 mb-4">
+        <div class="card review-card h-100">
+            <div class="card-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="text-warning">
+                        {% for i in range(review.rating) %}
+                            <i class="fas fa-star"></i>
+                        {% endfor %}
+                        {% for i in range(5 - review.rating) %}
+                            <i class="far fa-star"></i>
+                        {% endfor %}
+                    </div>
+                    <small class="text-muted">{{ review.created_at.strftime('%Y-%m-%d') }}</small>
+                </div>
+            </div>
+            <div class="card-body">
+                {% if review.comment %}
+                <p>{{ review.comment }}</p>
+                {% else %}
+                <p class="text-muted">No comment provided</p>
+                {% endif %}
+                
+                <div class="d-flex justify-content-between align-items-center mt-3">
+                    <div>
+                        <small class="text-muted">Service: {{ review.service_request.service.name }}</small>
+                    </div>
+                    <div>
+                        <small class="text-muted">Customer: {{ review.customer.user.username }}</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="text-center py-5">
+    <div class="mb-3">
+        <i class="fas fa-star fa-3x text-muted"></i>
+    </div>
+    <h4 class="text-muted">No reviews yet</h4>
+    <p>Complete service requests to receive reviews from customers.</p>
+</div>
+{% endif %}
+{% endblock %}

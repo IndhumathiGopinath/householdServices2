@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+
+{% block title %}
+    {% if form and form.name.data %}Edit Service{% else %}
+        {% if form %}New Service{% else %}Manage Services{% endif %}
+    {% endif %} - Admin
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>
+        {% if form and form.name.data %}Edit Service{% else %}
+            {% if form %}Add New Service{% else %}Manage Services{% endif %}
+        {% endif %}
+    </h1>
+    {% if not form %}
+    <a href="{{ url_for('admin.new_service') }}" class="btn btn-primary">
+        <i class="fas fa-plus me-1"></i> Add New Service
+    </a>
+    {% endif %}
+</div>
+
+{% if form %}
+<div class="row">
+    <div class="col-md-8 mx-auto">
+        <div class="card mb-4">
+            <div class="card-body">
+                <form method="POST">
+                    {{ form.hidden_tag() }}
+                    <div class="mb-3">
+                        {{ form.name.label(class="form-label") }}
+                        {% if form.name.errors %}
+                            {{ form.name(class="form-control is-invalid") }}
+                            <div class="invalid-feedback">
+                                {% for error in form.name.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            {{ form.name(class="form-control") }}
+                        {% endif %}
+                    </div>
+                    <div class="mb-3">
+                        {{ form.description.label(class="form-label") }}
+                        {% if form.description.errors %}
+                            {{ form.description(class="form-control is-invalid", rows=4) }}
+                            <div class="invalid-feedback">
+                                {% for error in form.description.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            {{ form.description(class="form-control", rows=4) }}
+                        {% endif %}
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            {{ form.base_price.label(class="form-label") }}
+                            {% if form.base_price.errors %}
+                                {{ form.base_price(class="form-control is-invalid") }}
+                                <div class="invalid-feedback">
+                                    {% for error in form.base_price.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                {{ form.base_price(class="form-control") }}
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            {{ form.time_required.label(class="form-label") }}
+                            {% if form.time_required.errors %}
+                                {{ form.time_required(class="form-control is-invalid") }}
+                                <div class="invalid-feedback">
+                                    {% for error in form.time_required.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                {{ form.time_required(class="form-control") }}
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="mb-3 form-check">
+                        {{ form.is_active(class="form-check-input") }}
+                        {{ form.is_active.label(class="form-check-label") }}
+                    </div>
+                    <div class="d-grid gap-2">
+                        {{ form.submit(class="btn btn-primary") }}
+                        <a href="{{ url_for('admin.services') }}" class="btn btn-outline-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="card">
+    <div class="card-body">
+        {% if services %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Base Price</th>
+                        <th>Time Required</th>
+                        <th>Status</th>
+                        <th>Professionals</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for service in services %}
+                    <tr>
+                        <td>{{ service.id }}</td>
+                        <td>{{ service.name }}</td>
+                        <td>${{ service.base_price }}</td>
+                        <td>{{ service.time_required }} mins</td>
+                        <td>
+                            {% if service.is_active %}
+                                <span class="badge bg-success">Active</span>
+                            {% else %}
+                                <span class="badge bg-danger">Inactive</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ service.professionals.count() }}</td>
+                        <td>
+                            <a href="{{ url_for('admin.edit_service', service_id=service.id) }}" class="btn btn-sm btn-primary">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <h4 class="text-muted">No services found</h4>
+            <p>Start by adding a new service</p>
+            <a href="{{ url_for('admin.new_service') }}" class="btn btn-primary">
+                <i class="fas fa-plus me-1"></i> Add New Service
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+{% endblock %}

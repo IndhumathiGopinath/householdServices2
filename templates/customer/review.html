@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+
+{% block title %}Leave Review - Household Services{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h2 class="mb-0">Review Service</h2>
+            </div>
+            <div class="card-body">
+                <div class="mb-4">
+                    <h5>Service Details</h5>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Service:</strong> {{ request.service.name }}</p>
+                            <p><strong>Date:</strong> {{ request.scheduled_date.strftime('%Y-%m-%d') }}</p>
+                            <p><strong>Price:</strong> ${{ request.price }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Professional:</strong> {{ request.professional.user.username }}</p>
+                            <p><strong>Experience:</strong> {{ request.professional.experience }} years</p>
+                            <p><strong>Completed on:</strong> {{ request.updated_at.strftime('%Y-%m-%d') }}</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <form method="POST" action="" id="review-service-app">
+                    {{ form.hidden_tag() }}
+                    <div class="mb-3">
+                        <label class="form-label">Rating</label>
+                        <div class="mb-2">
+                            <div class="rating-stars text-center">
+                                <span @click="setRating(1)" :class="{ 'text-warning': rating >= 1 }">
+                                    <i class="fas fa-star fa-2x" :class="rating >= 1 ? 'fas' : 'far'"></i>
+                                </span>
+                                <span @click="setRating(2)" :class="{ 'text-warning': rating >= 2 }">
+                                    <i class="fas fa-star fa-2x" :class="rating >= 2 ? 'fas' : 'far'"></i>
+                                </span>
+                                <span @click="setRating(3)" :class="{ 'text-warning': rating >= 3 }">
+                                    <i class="fas fa-star fa-2x" :class="rating >= 3 ? 'fas' : 'far'"></i>
+                                </span>
+                                <span @click="setRating(4)" :class="{ 'text-warning': rating >= 4 }">
+                                    <i class="fas fa-star fa-2x" :class="rating >= 4 ? 'fas' : 'far'"></i>
+                                </span>
+                                <span @click="setRating(5)" :class="{ 'text-warning': rating >= 5 }">
+                                    <i class="fas fa-star fa-2x" :class="rating >= 5 ? 'fas' : 'far'"></i>
+                                </span>
+                            </div>
+                            <div class="text-center">
+                                <span class="fw-bold" v-if="rating === 1">Poor</span>
+                                <span class="fw-bold" v-if="rating === 2">Fair</span>
+                                <span class="fw-bold" v-if="rating === 3">Good</span>
+                                <span class="fw-bold" v-if="rating === 4">Very Good</span>
+                                <span class="fw-bold" v-if="rating === 5">Excellent</span>
+                            </div>
+                        </div>
+                        {{ form.rating(style="display: none;", v_model="rating") }}
+                        {% if form.rating.errors %}
+                            <div class="text-danger">
+                                {% for error in form.rating.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="mb-4">
+                        {{ form.comment.label(class="form-label") }}
+                        {% if form.comment.errors %}
+                            {{ form.comment(class="form-control is-invalid", rows=4, v_model="comment") }}
+                            <div class="invalid-feedback">
+                                {% for error in form.comment.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            {{ form.comment(class="form-control", rows=4, placeholder="Share your experience with the service...", v_model="comment") }}
+                        {% endif %}
+                    </div>
+                    <div class="d-grid gap-2">
+                        {{ form.submit(class="btn btn-primary") }}
+                        <a href="{{ url_for('customer.requests') }}" class="btn btn-outline-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    new Vue({
+        el: '#review-service-app',
+        delimiters: ['${', '}'],
+        data: {
+            rating: 5,
+            comment: ''
+        },
+        mounted() {
+            // Update form field when rating changes
+            document.getElementById('rating').value = this.rating;
+        },
+        methods: {
+            setRating(value) {
+                this.rating = value;
+                document.getElementById('rating').value = value;
+            }
+        }
+    });
+</script>
+{% endblock %}

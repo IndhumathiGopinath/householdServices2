@@ -1,0 +1,189 @@
+{% extends "base.html" %}
+
+{% block title %}Book a Service - Household Services{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h2>Book a Service</h2>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="">
+                    {{ form.hidden_tag() }}
+                    <div class="mb-3">
+                        {{ form.service_id.label(class="form-label") }}
+                        {% if form.service_id.errors %}
+                            {{ form.service_id(class="form-select is-invalid") }}
+                            <div class="invalid-feedback">
+                                {% for error in form.service_id.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            {{ form.service_id(class="form-select") }}
+                        {% endif %}
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            {{ form.scheduled_date.label(class="form-label") }}
+                            {% if form.scheduled_date.errors %}
+                                {{ form.scheduled_date(class="form-control is-invalid", type="date") }}
+                                <div class="invalid-feedback">
+                                    {% for error in form.scheduled_date.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                {{ form.scheduled_date(class="form-control", type="date") }}
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            {{ form.scheduled_time.label(class="form-label") }}
+                            {% if form.scheduled_time.errors %}
+                                {{ form.scheduled_time(class="form-control is-invalid", type="time") }}
+                                <div class="invalid-feedback">
+                                    {% for error in form.scheduled_time.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                {{ form.scheduled_time(class="form-control", type="time") }}
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        {{ form.address.label(class="form-label") }}
+                        {% if form.address.errors %}
+                            {{ form.address(class="form-control is-invalid") }}
+                            <div class="invalid-feedback">
+                                {% for error in form.address.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            {{ form.address(class="form-control") }}
+                        {% endif %}
+                    </div>
+                    <div class="mb-3">
+                        {{ form.pin_code.label(class="form-label") }}
+                        {% if form.pin_code.errors %}
+                            {{ form.pin_code(class="form-control is-invalid") }}
+                            <div class="invalid-feedback">
+                                {% for error in form.pin_code.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            {{ form.pin_code(class="form-control") }}
+                        {% endif %}
+                    </div>
+                    <div class="mb-4">
+                        {{ form.description.label(class="form-label") }}
+                        {% if form.description.errors %}
+                            {{ form.description(class="form-control is-invalid", rows=4) }}
+                            <div class="invalid-feedback">
+                                {% for error in form.description.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            {{ form.description(class="form-control", rows=4, placeholder="Please provide details about your service requirement...") }}
+                        {% endif %}
+                    </div>
+                    <div class="d-grid gap-2">
+                        {{ form.submit(class="btn btn-primary") }}
+                        <a href="{{ url_for('customer.dashboard') }}" class="btn btn-outline-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5>Service Information</h5>
+            </div>
+            <div class="card-body" id="service-info">
+                <div v-if="selectedService">
+                    <h4>${ selectedService.name }</h4>
+                    <p class="text-muted">${ selectedService.description }</p>
+                    <hr>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span><strong>Base Price:</strong></span>
+                        <span>$${selectedService.base_price.toFixed(2)}</span>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span><strong>Time Required:</strong></span>
+                        <span>${selectedService.time_required} mins</span>
+                    </div>
+                </div>
+                <div v-else class="text-center py-4">
+                    <p class="text-muted">Select a service to see details</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header">
+                <h5>Booking Tips</h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item bg-transparent">Choose a date at least 24 hours in advance</li>
+                    <li class="list-group-item bg-transparent">Provide clear instructions in the description</li>
+                    <li class="list-group-item bg-transparent">Ensure someone will be present at the address</li>
+                    <li class="list-group-item bg-transparent">Keep your contact details updated</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Get all available services
+    const services = [
+        {% for service in services %}
+        {
+            id: {{ service.id }},
+            name: "{{ service.name }}",
+            description: "{{ service.description }}",
+            base_price: {{ service.base_price }},
+            time_required: {{ service.time_required }}
+        },
+        {% endfor %}
+    ];
+
+    new Vue({
+        el: '#service-info',
+        delimiters: ['${', '}'],
+        data: {
+            services: services,
+            selectedService: null
+        },
+        mounted() {
+            // Initialize with the currently selected service
+            const serviceSelect = document.getElementById('service_id');
+            if (serviceSelect && serviceSelect.value) {
+                this.updateSelectedService(serviceSelect.value);
+            }
+            
+            // Add event listener to update when selection changes
+            if (serviceSelect) {
+                serviceSelect.addEventListener('change', (e) => {
+                    this.updateSelectedService(e.target.value);
+                });
+            }
+        },
+        methods: {
+            updateSelectedService(serviceId) {
+                this.selectedService = this.services.find(s => s.id == serviceId) || null;
+            }
+        }
+    });
+</script>
+{% endblock %}

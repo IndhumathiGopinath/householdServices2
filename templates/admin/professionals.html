@@ -1,0 +1,271 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Professionals - Admin{% endblock %}
+
+{% block content %}
+<h1 class="mb-4">Manage Service Professionals</h1>
+
+<ul class="nav nav-tabs mb-4">
+    <li class="nav-item">
+        <a class="nav-link active" id="all-tab" data-bs-toggle="tab" href="#all" role="tab">All Professionals</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" id="pending-tab" data-bs-toggle="tab" href="#pending" role="tab">Pending Verification</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" id="certificates-tab" data-bs-toggle="tab" href="#certificates" role="tab">Certificate Verification</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" id="verified-tab" data-bs-toggle="tab" href="#verified" role="tab">Verified</a>
+    </li>
+</ul>
+
+<div class="tab-content">
+    <div class="tab-pane fade show active" id="all" role="tabpanel">
+        <div class="card">
+            <div class="card-body">
+                {% if professionals %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Service</th>
+                                <th>Experience</th>
+                                <th>Joined</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for professional in professionals %}
+                            <tr>
+                                <td>{{ professional.id }}</td>
+                                <td>
+                                    {{ professional.user.username }}
+                                    <small class="d-block text-muted">{{ professional.user.email }}</small>
+                                </td>
+                                <td>{{ professional.service.name }}</td>
+                                <td>{{ professional.experience }} years</td>
+                                <td>{{ professional.user.created_at.strftime('%Y-%m-%d') }}</td>
+                                <td>
+                                    {% if professional.is_verified %}
+                                        <span class="badge bg-success">Verified</span>
+                                    {% else %}
+                                        <span class="badge bg-warning">Pending</span>
+                                    {% endif %}
+                                    
+                                    {% if not professional.user.is_active %}
+                                        <span class="badge bg-danger">Blocked</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if not professional.is_verified %}
+                                    <form action="{{ url_for('admin.verify_professional', professional_id=professional.id) }}" method="POST" class="d-inline">
+                                        <button type="submit" class="btn btn-sm btn-success">
+                                            <i class="fas fa-check"></i> Verify
+                                        </button>
+                                    </form>
+                                    {% endif %}
+                                    
+                                    <form action="{{ url_for('admin.toggle_user_active', user_id=professional.user.id) }}" method="POST" class="d-inline">
+                                        {% if professional.user.is_active %}
+                                            <button type="submit" class="btn btn-sm btn-danger">
+                                                <i class="fas fa-ban"></i> Block
+                                            </button>
+                                        {% else %}
+                                            <button type="submit" class="btn btn-sm btn-info">
+                                                <i class="fas fa-unlock"></i> Unblock
+                                            </button>
+                                        {% endif %}
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-5">
+                    <h4 class="text-muted">No professionals registered yet</h4>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="tab-pane fade" id="pending" role="tabpanel">
+        <div class="card">
+            <div class="card-body">
+                {% set pending_professionals = professionals|selectattr('is_verified', 'equalto', false)|list %}
+                {% if pending_professionals %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Service</th>
+                                <th>Experience</th>
+                                <th>Joined</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for professional in pending_professionals %}
+                            <tr>
+                                <td>{{ professional.id }}</td>
+                                <td>
+                                    {{ professional.user.username }}
+                                    <small class="d-block text-muted">{{ professional.user.email }}</small>
+                                </td>
+                                <td>{{ professional.service.name }}</td>
+                                <td>{{ professional.experience }} years</td>
+                                <td>{{ professional.user.created_at.strftime('%Y-%m-%d') }}</td>
+                                <td>
+                                    <form action="{{ url_for('admin.verify_professional', professional_id=professional.id) }}" method="POST" class="d-inline">
+                                        <button type="submit" class="btn btn-sm btn-success">
+                                            <i class="fas fa-check"></i> Verify
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-5">
+                    <h4 class="text-muted">No pending verifications</h4>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="tab-pane fade" id="certificates" role="tabpanel">
+        <div class="card">
+            <div class="card-body">
+                {% set pending_cert_professionals = professionals|selectattr('certificate_file', 'defined')|selectattr('certificate_file', 'ne', None)|selectattr('certificate_verified', 'equalto', false)|list %}
+                {% if pending_cert_professionals %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Service</th>
+                                <th>Certificate</th>
+                                <th>Verification Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for professional in pending_cert_professionals %}
+                            <tr>
+                                <td>{{ professional.id }}</td>
+                                <td>
+                                    {{ professional.user.username }}
+                                    <small class="d-block text-muted">{{ professional.user.email }}</small>
+                                </td>
+                                <td>{{ professional.service.name }}</td>
+                                <td>
+                                    {{ professional.certificate_name }}
+                                </td>
+                                <td>
+                                    {% if professional.certificate_verified %}
+                                        <span class="badge bg-success">Verified</span>
+                                    {% else %}
+                                        <span class="badge bg-warning">Pending</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <a href="{{ url_for('admin.view_certificate', professional_id=professional.id) }}" class="btn btn-sm btn-info">
+                                        <i class="fas fa-eye"></i> View
+                                    </a>
+                                    
+                                    {% if not professional.certificate_verified %}
+                                    <form action="{{ url_for('admin.verify_certificate', professional_id=professional.id) }}" method="POST" class="d-inline">
+                                        <button type="submit" class="btn btn-sm btn-success">
+                                            <i class="fas fa-check"></i> Verify
+                                        </button>
+                                    </form>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-5">
+                    <h4 class="text-muted">No pending certificate verifications</h4>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="tab-pane fade" id="verified" role="tabpanel">
+        <div class="card">
+            <div class="card-body">
+                {% set verified_professionals = professionals|selectattr('is_verified', 'equalto', true)|list %}
+                {% if verified_professionals %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Service</th>
+                                <th>Experience</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for professional in verified_professionals %}
+                            <tr>
+                                <td>{{ professional.id }}</td>
+                                <td>
+                                    {{ professional.user.username }}
+                                    <small class="d-block text-muted">{{ professional.user.email }}</small>
+                                </td>
+                                <td>{{ professional.service.name }}</td>
+                                <td>{{ professional.experience }} years</td>
+                                <td>
+                                    {% if professional.user.is_active %}
+                                        <span class="badge bg-success">Active</span>
+                                    {% else %}
+                                        <span class="badge bg-danger">Blocked</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <form action="{{ url_for('admin.toggle_user_active', user_id=professional.user.id) }}" method="POST" class="d-inline">
+                                        {% if professional.user.is_active %}
+                                            <button type="submit" class="btn btn-sm btn-danger">
+                                                <i class="fas fa-ban"></i> Block
+                                            </button>
+                                        {% else %}
+                                            <button type="submit" class="btn btn-sm btn-info">
+                                                <i class="fas fa-unlock"></i> Unblock
+                                            </button>
+                                        {% endif %}
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-5">
+                    <h4 class="text-muted">No verified professionals yet</h4>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

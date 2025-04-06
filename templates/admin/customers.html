@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Customers - Admin{% endblock %}
+
+{% block content %}
+<h1 class="mb-4">Manage Customers</h1>
+
+<div class="card">
+    <div class="card-body">
+        {% if customers %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Phone</th>
+                        <th>Location</th>
+                        <th>Joined</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for customer in customers %}
+                    <tr>
+                        <td>{{ customer.id }}</td>
+                        <td>{{ customer.user.username }}</td>
+                        <td>{{ customer.user.email }}</td>
+                        <td>{{ customer.phone }}</td>
+                        <td>{{ customer.pin_code }}</td>
+                        <td>{{ customer.user.created_at.strftime('%Y-%m-%d') }}</td>
+                        <td>
+                            {% if customer.user.is_active %}
+                                <span class="badge bg-success">Active</span>
+                            {% else %}
+                                <span class="badge bg-danger">Blocked</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <form action="{{ url_for('admin.toggle_user_active', user_id=customer.user.id) }}" method="POST">
+                                {% if customer.user.is_active %}
+                                    <button type="submit" class="btn btn-sm btn-danger">
+                                        <i class="fas fa-ban"></i> Block
+                                    </button>
+                                {% else %}
+                                    <button type="submit" class="btn btn-sm btn-info">
+                                        <i class="fas fa-unlock"></i> Unblock
+                                    </button>
+                                {% endif %}
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <h4 class="text-muted">No customers registered yet</h4>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

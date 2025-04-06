@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+
+{% block title %}View Certificate - {{ professional.user.username }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-10 mx-auto">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="card-title mb-0">Certificate Details</h3>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h4>Professional Information</h4>
+                            <dl class="row">
+                                <dt class="col-sm-4">Name:</dt>
+                                <dd class="col-sm-8">{{ professional.user.username }}</dd>
+                                
+                                <dt class="col-sm-4">Email:</dt>
+                                <dd class="col-sm-8">{{ professional.user.email }}</dd>
+                                
+                                <dt class="col-sm-4">Service:</dt>
+                                <dd class="col-sm-8">{{ professional.service.name }}</dd>
+                                
+                                <dt class="col-sm-4">Experience:</dt>
+                                <dd class="col-sm-8">{{ professional.experience }} years</dd>
+                            </dl>
+                        </div>
+                        <div class="col-md-6">
+                            <h4>Certificate Information</h4>
+                            <dl class="row">
+                                <dt class="col-sm-4">Certificate Name:</dt>
+                                <dd class="col-sm-8">{{ professional.certificate_name }}</dd>
+                                
+                                <dt class="col-sm-4">Verification Status:</dt>
+                                <dd class="col-sm-8">
+                                    {% if professional.certificate_verified %}
+                                        <span class="badge bg-success">Verified</span>
+                                    {% else %}
+                                        <span class="badge bg-warning">Pending Verification</span>
+                                    {% endif %}
+                                </dd>
+                            </dl>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-12">
+                            <h4 class="mb-3">Certificate Preview</h4>
+                            <div class="certificate-preview p-3 border rounded">
+                                {% if professional.certificate_file %}
+                                    {% set file_extension = professional.certificate_file.split('.')[-1].lower() %}
+                                    {% set file_url = url_for('static', filename=professional.certificate_file) %}
+                                    
+                                    {% if file_extension in ['jpg', 'jpeg', 'png', 'gif'] %}
+                                        <img src="{{ file_url }}" 
+                                             class="img-fluid" alt="Certificate Image"
+                                             onerror="this.onerror=null; this.src=''; this.alt='Error loading image'; this.parentElement.innerHTML='<div class=\'alert alert-danger\'>Error loading certificate image. Please ensure the file exists and is accessible.</div>'">
+                                    {% elif file_extension == 'pdf' %}
+                                        <div class="ratio ratio-16x9">
+                                            <iframe src="{{ file_url }}" 
+                                                    class="embed-responsive-item"
+                                                    onerror="this.style.display='none'; this.parentElement.innerHTML='<div class=\'alert alert-danger\'>Error loading PDF. Please ensure the file exists and is accessible.</div>'"></iframe>
+                                        </div>
+                                        <div class="mt-2">
+                                            <a href="{{ file_url }}" 
+                                               class="btn btn-outline-primary" target="_blank">
+                                                <i class="bi bi-file-earmark-pdf"></i> Open PDF in new tab
+                                            </a>
+                                        </div>
+                                    {% else %}
+                                        <div class="alert alert-warning">
+                                            File type not supported for preview. 
+                                            <a href="{{ file_url }}" 
+                                               class="btn btn-sm btn-outline-primary" target="_blank">
+                                                Download File
+                                            </a>
+                                        </div>
+                                    {% endif %}
+                                {% else %}
+                                    <div class="alert alert-warning">
+                                        No certificate file found.
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between mt-4">
+                        <a href="{{ url_for('admin.professionals') }}" class="btn btn-secondary">
+                            <i class="bi bi-arrow-left"></i> Back to Professionals
+                        </a>
+                        
+                        {% if not professional.certificate_verified %}
+                        <form action="{{ url_for('admin.verify_certificate', professional_id=professional.id) }}" method="post">
+                            <button type="submit" class="btn btn-success">
+                                <i class="bi bi-check-circle"></i> Verify Certificate
+                            </button>
+                        </form>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+         

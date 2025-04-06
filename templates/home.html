@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+
+{% block title %}Home - Household Services{% endblock %}
+
+{% block content %}
+<div class="jumbotron bg-dark text-light p-5 rounded mb-4">
+    <h1 class="display-4">Welcome to Household Services</h1>
+    <p class="lead">Your one-stop solution for all home service needs.</p>
+    <hr class="my-4">
+    <p>Find professional services for plumbing, electrical work, cleaning, and much more.</p>
+    <div class="mt-4">
+        {% if not current_user.is_authenticated %}
+            <a href="{{ url_for('auth.register') }}" class="btn btn-primary me-2">Register</a>
+            <a href="{{ url_for('auth.login') }}" class="btn btn-outline-light">Login</a>
+        {% else %}
+            {% if current_user.role == 'customer' %}
+                <a href="{{ url_for('customer.book_service') }}" class="btn btn-primary me-2">Book a Service</a>
+                <a href="{{ url_for('customer.dashboard') }}" class="btn btn-outline-light">Dashboard</a>
+            {% elif current_user.role == 'professional' %}
+                <a href="{{ url_for('professional.requests') }}" class="btn btn-primary me-2">View Requests</a>
+                <a href="{{ url_for('professional.dashboard') }}" class="btn btn-outline-light">Dashboard</a>
+            {% elif current_user.role == 'admin' %}
+                <a href="{{ url_for('admin.dashboard') }}" class="btn btn-primary">Admin Dashboard</a>
+            {% endif %}
+        {% endif %}
+    </div>
+</div>
+
+<div id="home-app">
+    <div class="row mb-4">
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h3 class="card-title">For Customers</h3>
+                    <p class="card-text">Need help with household tasks? Our platform connects you with skilled professionals who can help with all your home service needs.</p>
+                    <ul>
+                        <li>Easy and secure booking</li>
+                        <li>Verified professionals</li>
+                        <li>Competitive pricing</li>
+                        <li>Review system to ensure quality</li>
+                    </ul>
+                    {% if not current_user.is_authenticated or current_user.role == 'customer' %}
+                        <a href="{{ url_for('service.list_services') }}" class="btn btn-primary">Explore Services</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h3 class="card-title">For Service Professionals</h3>
+                    <p class="card-text">Are you a skilled service provider? Join our platform to connect with customers and grow your business.</p>
+                    <ul>
+                        <li>Flexible work schedule</li>
+                        <li>Direct connection with customers</li>
+                        <li>Build your reputation with reviews</li>
+                        <li>Steady stream of service requests</li>
+                    </ul>
+                    {% if not current_user.is_authenticated %}
+                        <a href="{{ url_for('auth.register') }}" class="btn btn-primary">Join as a Professional</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <h2 class="mb-4">Our Popular Services</h2>
+    <div class="row" v-if="services.length > 0">
+        <div class="col-md-4 mb-4" v-for="service in services" :key="service.id">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">${ service.name }</h5>
+                    <p class="card-text">${ service.description }</p>
+                    <p><strong>Base Price:</strong> $${service.base_price.toFixed(2)}</p>
+                    <p><strong>Time Required:</strong> ${service.time_required} mins</p>
+                    <!-- <a :href="'/service/detail/' + service.id" class="btn btn-outline-primary">View Details</a> -->
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="text-center my-4" v-else>
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
+
+    <div class="text-center mt-5">
+        <h2 class="mb-4">How It Works</h2>
+        <div class="row">
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 bg-dark border-primary">
+                    <div class="card-body text-center">
+                        <i class="fas fa-search fa-3x mb-3 text-primary"></i>
+                        <h5 class="card-title">1. Find a Service</h5>
+                        <p class="card-text">Browse through our wide range of services and select the one you need.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 bg-dark border-primary">
+                    <div class="card-body text-center">
+                        <i class="fas fa-calendar-alt fa-3x mb-3 text-primary"></i>
+                        <h5 class="card-title">2. Book a Service</h5>
+                        <p class="card-text">Choose your preferred date and time, and submit your service request.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 bg-dark border-primary">
+                    <div class="card-body text-center">
+                        <i class="fas fa-check-circle fa-3x mb-3 text-primary"></i>
+                        <h5 class="card-title">3. Service Completed</h5>
+                        <p class="card-text">A verified professional will arrive at your home and complete the service.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    new Vue({
+        el: '#home-app',
+        delimiters: ['${', '}'],
+        data: {
+            services: []
+        },
+        mounted() {
+            this.fetchServices();
+        },
+        methods: {
+            fetchServices() {
+                axios.get('/service/api/list')
+                    .then(response => {
+                        this.services = response.data.slice(0, 6); // Show only first 6 services
+                    })
+                    .catch(error => {
+                        console.error('Error fetching services:', error);
+                    });
+            }
+        }
+    });
+</script>
+{% endblock %}

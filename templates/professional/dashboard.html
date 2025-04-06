@@ -1,0 +1,218 @@
+{% extends "base.html" %}
+
+{% block title %}Professional Dashboard - Household Services{% endblock %}
+
+{% block content %}
+<h1 class="mb-4">Professional Dashboard</h1>
+
+{% if not current_user.professional_profile.is_verified %}
+<div class="alert alert-warning">
+    <i class="fas fa-exclamation-triangle me-2"></i> Your profile is pending verification by an admin. You can only view service requests, but cannot accept them until verified.
+</div>
+{% endif %}
+
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Quick Actions</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex flex-wrap gap-2">
+                    <a href="{{ url_for('professional.requests') }}" class="btn btn-primary">
+                        <i class="fas fa-list me-1"></i> View Service Requests
+                    </a>
+                    <a href="{{ url_for('professional.edit_profile') }}" class="btn btn-secondary">
+                        <i class="fas fa-user-edit me-1"></i> Edit Profile
+                    </a>
+                    <a href="{{ url_for('professional.reviews') }}" class="btn btn-info">
+                        <i class="fas fa-star me-1"></i> View Reviews
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">New Assignments</h5>
+            </div>
+            <div class="card-body">
+                {% if new_requests %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Service</th>
+                                <th>Date</th>
+                                <th>Time</th>
+                                <th>Location</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for request in new_requests %}
+                            <tr>
+                                <td>{{ request.service.name }}</td>
+                                <td>{{ request.scheduled_date.strftime('%Y-%m-%d') }}</td>
+                                <td>{{ request.scheduled_time.strftime('%H:%M') }}</td>
+                                <td>{{ request.pin_code }}</td>
+                                <td>
+                                    <a href="{{ url_for('professional.view_request', request_id=request.id) }}" class="btn btn-sm btn-info">
+                                        <i class="fas fa-eye"></i> View
+                                    </a>
+                                    {% if current_user.professional_profile.is_verified %}
+                                    <form action="{{ url_for('professional.accept_request', request_id=request.id) }}" method="POST" class="d-inline">
+                                        <button type="submit" class="btn btn-sm btn-success">
+                                            <i class="fas fa-check"></i> Accept
+                                        </button>
+                                    </form>
+                                    <form action="{{ url_for('professional.reject_request', request_id=request.id) }}" method="POST" class="d-inline">
+                                        <button type="submit" class="btn btn-sm btn-danger">
+                                            <i class="fas fa-times"></i> Reject
+                                        </button>
+                                    </form>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted text-center py-3">No new service assignments</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Your Rating</h5>
+            </div>
+            <div class="card-body text-center">
+                <div class="display-4 text-warning mb-2">
+                    {% set avg_rating = avg_rating|round|int %}
+                    {% for i in range(avg_rating) %}
+                        <i class="fas fa-star"></i>
+                    {% endfor %}
+                    {% for i in range(5 - avg_rating) %}
+                        <i class="far fa-star"></i>
+                    {% endfor %}
+                </div>
+                <h2>{{ avg_rating|round(1) }}/5.0</h2>
+                <p class="text-muted">Based on {{ reviews|length }} reviews</p>
+                <a href="{{ url_for('professional.reviews') }}" class="btn btn-outline-primary">View All Reviews</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Upcoming Services</h5>
+            </div>
+            <div class="card-body">
+                {% if accepted_requests %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Service</th>
+                                <th>Customer</th>
+                                <th>Date</th>
+                                <th>Time</th>
+                                <th>Address</th>
+                                <th>Price</th>
+                                <th>Details</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for request in accepted_requests %}
+                            <tr>
+                                <td>{{ request.service.name }}</td>
+                                <td>{{ request.customer.user.username }}</td>
+                                <td>{{ request.scheduled_date.strftime('%Y-%m-%d') }}</td>
+                                <td>{{ request.scheduled_time.strftime('%H:%M') }}</td>
+                                <td>{{ request.address }}</td>
+                                <td>${{ request.price }}</td>
+                                <td>
+                                    <a href="{{ url_for('professional.view_request', request_id=request.id) }}" class="btn btn-sm btn-info">
+                                        <i class="fas fa-eye"></i> View
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted text-center py-3">No upcoming services</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Recent Completed Services</h5>
+                <a href="{{ url_for('professional.requests') }}" class="btn btn-sm btn-outline-primary">View All</a>
+            </div>
+            <div class="card-body">
+                {% if completed_requests %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Service</th>
+                                <th>Customer</th>
+                                <th>Date</th>
+                                <th>Price</th>
+                                <th>Rating</th>
+                                <th>Completed On</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for request in completed_requests %}
+                            <tr>
+                                <td>{{ request.service.name }}</td>
+                                <td>{{ request.customer.user.username }}</td>
+                                <td>{{ request.scheduled_date.strftime('%Y-%m-%d') }}</td>
+                                <td>${{ request.price }}</td>
+                                <td>
+                                    {% if request.review %}
+                                    <div class="text-warning">
+                                        {% for i in range(request.review.rating) %}
+                                        <i class="fas fa-star"></i>
+                                        {% endfor %}
+                                        {% for i in range(5 - request.review.rating) %}
+                                        <i class="far fa-star"></i>
+                                        {% endfor %}
+                                    </div>
+                                    {% else %}
+                                    <span class="text-muted">Not rated yet</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ request.updated_at.strftime('%Y-%m-%d') }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted text-center py-3">No completed services yet</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

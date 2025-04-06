@@ -1,0 +1,182 @@
+{% extends "base.html" %}
+
+{% block title %}Service Request #{{ request.id }} - Household Services{% endblock %}
+
+{% block content %}
+<div class="mb-3">
+    <a href="{{ url_for('professional.requests') }}" class="btn btn-outline-secondary">
+        <i class="fas fa-arrow-left me-1"></i> Back to Requests
+    </a>
+</div>
+
+<div class="card request-detail-card mb-4">
+    <div class="card-header bg-dark">
+        <div class="d-flex justify-content-between align-items-center">
+            <h2 class="mb-0">Service Request #{{ request.id }}</h2>
+            <span class="badge {% if request.status == 'completed' %}bg-success{% elif request.status == 'cancelled' %}bg-danger{% elif request.status == 'accepted' %}bg-primary{% elif request.status == 'assigned' %}bg-info{% else %}bg-warning{% endif %} px-3 py-2">
+                {{ request.status|capitalize }}
+            </span>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6">
+                <h4>Service Details</h4>
+                <table class="table">
+                    <tr>
+                        <th>Service Type:</th>
+                        <td>{{ request.service.name }}</td>
+                    </tr>
+                    <tr>
+                        <th>Date:</th>
+                        <td>{{ request.scheduled_date.strftime('%A, %B %d, %Y') }}</td>
+                    </tr>
+                    <tr>
+                        <th>Time:</th>
+                        <td>{{ request.scheduled_time.strftime('%I:%M %p') }}</td>
+                    </tr>
+                    <tr>
+                        <th>Price:</th>
+                        <td>${{ request.price }}</td>
+                    </tr>
+                    <tr>
+                        <th>Created At:</th>
+                        <td>{{ request.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                    </tr>
+                </table>
+            </div>
+            <div class="col-md-6">
+                <h4>Customer Information</h4>
+                <table class="table">
+                    <tr>
+                        <th>Name:</th>
+                        <td>{{ request.customer.user.username }}</td>
+                    </tr>
+                    <tr>
+                        <th>Phone:</th>
+                        <td>{{ request.customer.phone }}</td>
+                    </tr>
+                    <tr>
+                        <th>Address:</th>
+                        <td>{{ request.address }}</td>
+                    </tr>
+                    <tr>
+                        <th>PIN Code:</th>
+                        <td>{{ request.pin_code }}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        
+        {% if request.description %}
+        <div class="mt-3">
+            <h4>Service Description</h4>
+            <div class="card bg-dark">
+                <div class="card-body">
+                    <p class="mb-0">{{ request.description }}</p>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        
+        {% if request.status == 'completed' and request.review %}
+        <div class="mt-4">
+            <h4>Customer Review</h4>
+            <div class="card review-card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <div class="text-warning">
+                            {% for i in range(request.review.rating) %}
+                                <i class="fas fa-star"></i>
+                            {% endfor %}
+                            {% for i in range(5 - request.review.rating) %}
+                                <i class="far fa-star"></i>
+                            {% endfor %}
+                        </div>
+                        <small class="text-muted">{{ request.review.created_at.strftime('%Y-%m-%d %H:%M') }}</small>
+                    </div>
+                    <p class="mb-0">{{ request.review.comment }}</p>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        
+        <div class="mt-4">
+            <h4>Request Timeline</h4>
+            <div class="request-timeline mt-3">
+                <div class="timeline-item">
+                    <h5>Request Created</h5>
+                    <p class="text-muted">{{ request.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
+                </div>
+                
+                {% if request.status != 'pending' %}
+                <div class="timeline-item {% if request.status == 'cancelled' %}cancelled{% endif %}">
+                    <h5>Professional Assigned</h5>
+                    <p class="text-muted">You were assigned to this request</p>
+                </div>
+                {% endif %}
+                
+                {% if request.status == 'accepted' or request.status == 'completed' %}
+                <div class="timeline-item">
+                    <h5>Request Accepted</h5>
+                    <p class="text-muted">
+                        You accepted this service request
+                    </p>
+                </div>
+                {% endif %}
+                
+                {% if request.status == 'completed' %}
+                <div class="timeline-item completed">
+                    <h5>Service Completed</h5>
+                    <p class="text-muted">{{ request.updated_at.strftime('%Y-%m-%d %H:%M') }}</p>
+                </div>
+                {% endif %}
+                
+                {% if request.status == 'cancelled' %}
+                <div class="timeline-item cancelled">
+                    <h5>Request Cancelled</h5>
+                    <p class="text-muted">{{ request.updated_at.strftime('%Y-%m-%d %H:%M') }}</p>
+                </div>
+                {% endif %}
+                
+                {% if request.status == 'rejected' %}
+                <div class="timeline-item cancelled">
+                    <h5>Request Rejected</h5>
+                    <p class="text-muted">You rejected this service request</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="card-footer">
+        <div class="d-flex gap-2">
+            {% if request.status == 'assigned' %}
+            <form action="{{ url_for('professional.accept_request', request_id=request.id) }}" method="POST">
+                <button type="submit" class="btn btn-success" {% if not current_user.professional_profile.is_verified %}disabled{% endif %}>
+                    <i class="fas fa-check me-1"></i> Accept Request
+                </button>
+            </form>
+            <form action="{{ url_for('professional.reject_request', request_id=request.id) }}" method="POST">
+                <button type="submit" class="btn btn-danger" {% if not current_user.professional_profile.is_verified %}disabled{% endif %}>
+                    <i class="fas fa-times me-1"></i> Reject Request
+                </button>
+            </form>
+            {% endif %}
+            
+            {% if request.status == 'pending' and request.service_id == current_user.professional_profile.service_id %}
+            <form action="{{ url_for('professional.accept_request', request_id=request.id) }}" method="POST">
+                <button type="submit" class="btn btn-success" {% if not current_user.professional_profile.is_verified %}disabled{% endif %}>
+                    <i class="fas fa-check me-1"></i> Accept Request
+                </button>
+            </form>
+            {% endif %}
+            
+            {% if not current_user.professional_profile.is_verified and (request.status == 'assigned' or request.status == 'pending') %}
+            <div class="alert alert-warning mb-0 ms-auto">
+                <i class="fas fa-exclamation-triangle me-2"></i> Your profile must be verified before you can accept requests.
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

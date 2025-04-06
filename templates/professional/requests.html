@@ -1,0 +1,153 @@
+{% extends "base.html" %}
+
+{% block title %}Service Requests - Household Services{% endblock %}
+
+{% block content %}
+<h1 class="mb-4">Service Requests</h1>
+
+{% if not current_user.professional_profile.is_verified %}
+<div class="alert alert-warning">
+    <i class="fas fa-exclamation-triangle me-2"></i> Your profile is pending verification by an admin. You can view service requests, but cannot accept them until verified.
+</div>
+{% endif %}
+
+<ul class="nav nav-tabs mb-4">
+    <li class="nav-item">
+        <a class="nav-link active" id="assigned-tab" data-bs-toggle="tab" href="#assigned">My Requests</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" id="available-tab" data-bs-toggle="tab" href="#available">Available Requests</a>
+    </li>
+</ul>
+
+<div class="tab-content">
+    <!-- My Requests Tab -->
+    <div class="tab-pane fade show active" id="assigned">
+        {% if assigned_requests %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Service</th>
+                        <th>Customer</th>
+                        <th>Date & Time</th>
+                        <th>Address</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for request in assigned_requests %}
+                    <tr>
+                        <td>{{ request.id }}</td>
+                        <td>{{ request.service.name }}</td>
+                        <td>{{ request.customer.user.username }}</td>
+                        <td>
+                            {{ request.scheduled_date.strftime('%Y-%m-%d') }}<br>
+                            <small class="text-muted">{{ request.scheduled_time.strftime('%H:%M') }}</small>
+                        </td>
+                        <td>
+                            {{ request.address }}<br>
+                            <small class="text-muted">PIN: {{ request.pin_code }}</small>
+                        </td>
+                        <td>
+                            {% set status_class = {
+                                'assigned': 'bg-info',
+                                'accepted': 'bg-primary',
+                                'completed': 'bg-success',
+                                'cancelled': 'bg-danger',
+                                'rejected': 'bg-secondary'
+                            } %}
+                            <span class="badge {{ status_class[request.status] }}">{{ request.status }}</span>
+                        </td>
+                        <td>
+                            <a href="{{ url_for('professional.view_request', request_id=request.id) }}" class="btn btn-sm btn-info">
+                                <i class="fas fa-eye"></i> View
+                            </a>
+                            
+                            {% if request.status == 'assigned' %}
+                            <form action="{{ url_for('professional.accept_request', request_id=request.id) }}" method="POST" class="d-inline">
+                                <button type="submit" class="btn btn-sm btn-success" {% if not current_user.professional_profile.is_verified %}disabled{% endif %}>
+                                    <i class="fas fa-check"></i> Accept
+                                </button>
+                            </form>
+                            <form action="{{ url_for('professional.reject_request', request_id=request.id) }}" method="POST" class="d-inline">
+                                <button type="submit" class="btn btn-sm btn-danger" {% if not current_user.professional_profile.is_verified %}disabled{% endif %}>
+                                    <i class="fas fa-times"></i> Reject
+                                </button>
+                            </form>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <div class="mb-3">
+                <i class="fas fa-clipboard-list fa-3x text-muted"></i>
+            </div>
+            <h4 class="text-muted">You don't have any service requests yet</h4>
+            <p>Check the Available Requests tab to find new opportunities.</p>
+        </div>
+        {% endif %}
+    </div>
+    
+    <!-- Available Requests Tab -->
+    <div class="tab-pane fade" id="available">
+        {% if potential_requests %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Service</th>
+                        <th>Date & Time</th>
+                        <th>Location</th>
+                        <th>Price</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for request in potential_requests %}
+                    <tr>
+                        <td>{{ request.id }}</td>
+                        <td>{{ request.service.name }}</td>
+                        <td>
+                            {{ request.scheduled_date.strftime('%Y-%m-%d') }}<br>
+                            <small class="text-muted">{{ request.scheduled_time.strftime('%H:%M') }}</small>
+                        </td>
+                        <td>
+                            <span class="d-block">PIN: {{ request.pin_code }}</span>
+                        </td>
+                        <td>${{ request.price }}</td>
+                        <td>
+                            <a href="{{ url_for('professional.view_request', request_id=request.id) }}" class="btn btn-sm btn-info">
+                                <i class="fas fa-eye"></i> View
+                            </a>
+                            
+                            <form action="{{ url_for('professional.accept_request', request_id=request.id) }}" method="POST" class="d-inline">
+                                <button type="submit" class="btn btn-sm btn-success" {% if not current_user.professional_profile.is_verified %}disabled{% endif %}>
+                                    <i class="fas fa-check"></i> Accept
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <div class="mb-3">
+                <i class="fas fa-search fa-3x text-muted"></i>
+            </div>
+            <h4 class="text-muted">No available service requests at this time</h4>
+            <p>Check back later for new service requests.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

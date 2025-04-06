@@ -1,0 +1,291 @@
+{% extends "base.html" %}
+
+{% block title %}My Service Requests - Household Services{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>My Service Requests</h1>
+    <a href="{{ url_for('customer.book_service') }}" class="btn btn-primary">
+        <i class="fas fa-plus-circle me-1"></i> Book New Service
+    </a>
+</div>
+
+<ul class="nav nav-tabs mb-4">
+    <li class="nav-item">
+        <a class="nav-link active" id="all-tab" data-bs-toggle="tab" href="#all">All Requests</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" id="active-tab" data-bs-toggle="tab" href="#active">Active</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" id="completed-tab" data-bs-toggle="tab" href="#completed">Completed</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" id="cancelled-tab" data-bs-toggle="tab" href="#cancelled">Cancelled</a>
+    </li>
+</ul>
+
+<div class="tab-content">
+    <!-- All Requests Tab -->
+    <div class="tab-pane fade show active" id="all">
+        {% if requests %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Service</th>
+                        <th>Date</th>
+                        <th>Professional</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for request in requests %}
+                    <tr>
+                        <td>{{ request.id }}</td>
+                        <td>{{ request.service.name }}</td>
+                        <td>{{ request.scheduled_date.strftime('%Y-%m-%d') }}</td>
+                        <td>
+                            {% if request.professional %}
+                                {{ request.professional.user.username }}
+                            {% else %}
+                                <span class="text-muted">Not assigned</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% set status_class = {
+                                'pending': 'bg-warning',
+                                'assigned': 'bg-info',
+                                'accepted': 'bg-primary',
+                                'completed': 'bg-success',
+                                'cancelled': 'bg-danger',
+                                'rejected': 'bg-secondary'
+                            } %}
+                            <span class="badge {{ status_class[request.status] }}">{{ request.status }}</span>
+                        </td>
+                        <td>
+                            <a href="{{ url_for('customer.view_request', request_id=request.id) }}" class="btn btn-sm btn-info">
+                                <i class="fas fa-eye"></i> View
+                            </a>
+                            
+                            {% if request.status == 'accepted' %}
+                            <form action="{{ url_for('customer.complete_request', request_id=request.id) }}" method="POST" class="d-inline">
+                                <button type="submit" class="btn btn-sm btn-success">
+                                    <i class="fas fa-check"></i> Complete
+                                </button>
+                            </form>
+                            {% endif %}
+                            
+                            {% if request.status in ['pending', 'assigned'] %}
+                            <form action="{{ url_for('customer.cancel_request', request_id=request.id) }}" method="POST" class="d-inline">
+                                <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to cancel this request?')">
+                                    <i class="fas fa-times"></i> Cancel
+                                </button>
+                            </form>
+                            {% endif %}
+                            
+                            {% if request.status == 'completed' and not request.review %}
+                            <a href="{{ url_for('customer.review_service', request_id=request.id) }}" class="btn btn-sm btn-warning">
+                                <i class="fas fa-star"></i> Review
+                            </a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <div class="mb-3">
+                <i class="fas fa-clipboard-list fa-3x text-muted"></i>
+            </div>
+            <h4 class="text-muted">You don't have any service requests yet</h4>
+            <p>Book a service to get started!</p>
+            <a href="{{ url_for('customer.book_service') }}" class="btn btn-primary mt-3">
+                <i class="fas fa-plus-circle me-1"></i> Book a Service
+            </a>
+        </div>
+        {% endif %}
+    </div>
+    
+    <!-- Active Requests Tab -->
+    <div class="tab-pane fade" id="active">
+        {% set active_requests = requests|selectattr('status', 'in', ['pending', 'assigned', 'accepted'])|list %}
+        {% if active_requests %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Service</th>
+                        <th>Date</th>
+                        <th>Professional</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for request in active_requests %}
+                    <tr>
+                        <td>{{ request.id }}</td>
+                        <td>{{ request.service.name }}</td>
+                        <td>{{ request.scheduled_date.strftime('%Y-%m-%d') }}</td>
+                        <td>
+                            {% if request.professional %}
+                                {{ request.professional.user.username }}
+                            {% else %}
+                                <span class="text-muted">Not assigned</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% set status_class = {
+                                'pending': 'bg-warning',
+                                'assigned': 'bg-info',
+                                'accepted': 'bg-primary'
+                            } %}
+                            <span class="badge {{ status_class[request.status] }}">{{ request.status }}</span>
+                        </td>
+                        <td>
+                            <a href="{{ url_for('customer.view_request', request_id=request.id) }}" class="btn btn-sm btn-info">
+                                <i class="fas fa-eye"></i> View
+                            </a>
+                            
+                            {% if request.status == 'accepted' %}
+                            <form action="{{ url_for('customer.complete_request', request_id=request.id) }}" method="POST" class="d-inline">
+                                <button type="submit" class="btn btn-sm btn-success">
+                                    <i class="fas fa-check"></i> Complete
+                                </button>
+                            </form>
+                            {% endif %}
+                            
+                            {% if request.status in ['pending', 'assigned'] %}
+                            <form action="{{ url_for('customer.cancel_request', request_id=request.id) }}" method="POST" class="d-inline">
+                                <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to cancel this request?')">
+                                    <i class="fas fa-times"></i> Cancel
+                                </button>
+                            </form>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <div class="mb-3">
+                <i class="fas fa-clipboard-check fa-3x text-muted"></i>
+            </div>
+            <h4 class="text-muted">You don't have any active service requests</h4>
+            <p>Book a service to get started!</p>
+            <a href="{{ url_for('customer.book_service') }}" class="btn btn-primary mt-3">
+                <i class="fas fa-plus-circle me-1"></i> Book a Service
+            </a>
+        </div>
+        {% endif %}
+    </div>
+    
+    <!-- Completed Requests Tab -->
+    <div class="tab-pane fade" id="completed">
+        {% set completed_requests = requests|selectattr('status', 'equalto', 'completed')|list %}
+        {% if completed_requests %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Service</th>
+                        <th>Date</th>
+                        <th>Professional</th>
+                        <th>Price</th>
+                        <th>Review</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for request in completed_requests %}
+                    <tr>
+                        <td>{{ request.id }}</td>
+                        <td>{{ request.service.name }}</td>
+                        <td>{{ request.scheduled_date.strftime('%Y-%m-%d') }}</td>
+                        <td>{{ request.professional.user.username }}</td>
+                        <td>${{ request.price }}</td>
+                        <td>
+                            {% if request.review %}
+                                <div class="text-warning">
+                                    {% for i in range(request.review.rating) %}
+                                    <i class="fas fa-star"></i>
+                                    {% endfor %}
+                                    {% for i in range(5 - request.review.rating) %}
+                                    <i class="far fa-star"></i>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <a href="{{ url_for('customer.review_service', request_id=request.id) }}" class="btn btn-sm btn-warning">
+                                    <i class="fas fa-star"></i> Leave Review
+                                </a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <div class="mb-3">
+                <i class="fas fa-clipboard-check fa-3x text-muted"></i>
+            </div>
+            <h4 class="text-muted">You don't have any completed service requests yet</h4>
+        </div>
+        {% endif %}
+    </div>
+    
+    <!-- Cancelled Requests Tab -->
+    <div class="tab-pane fade" id="cancelled">
+        {% set cancelled_requests = requests|selectattr('status', 'equalto', 'cancelled')|list %}
+        {% if cancelled_requests %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Service</th>
+                        <th>Date</th>
+                        <th>Created At</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for request in cancelled_requests %}
+                    <tr>
+                        <td>{{ request.id }}</td>
+                        <td>{{ request.service.name }}</td>
+                        <td>{{ request.scheduled_date.strftime('%Y-%m-%d') }}</td>
+                        <td>{{ request.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                        <td>
+                            <a href="{{ url_for('customer.view_request', request_id=request.id) }}" class="btn btn-sm btn-info">
+                                <i class="fas fa-eye"></i> View
+                            </a>
+                            <a href="{{ url_for('customer.book_service') }}" class="btn btn-sm btn-primary">
+                                <i class="fas fa-redo"></i> Book Again
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <div class="mb-3">
+                <i class="fas fa-ban fa-3x text-muted"></i>
+            </div>
+            <h4 class="text-muted">You don't have any cancelled service requests</h4>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

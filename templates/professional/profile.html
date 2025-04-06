@@ -1,0 +1,187 @@
+{% extends "base.html" %}
+
+{% block title %}
+    {% if title %}{{ title }}{% else %}Professional Profile{% endif %} - Household Services
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h2 class="mb-0">
+                    {% if title %}{{ title }}{% else %}Professional Profile{% endif %}
+                </h2>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="" enctype="multipart/form-data">
+                    {{ form.hidden_tag() }}
+                    <div class="mb-3">
+                        <label class="form-label">Username</label>
+                        <input type="text" class="form-control" value="{{ current_user.username }}" disabled>
+                        <div class="form-text">Your username cannot be changed.</div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Email</label>
+                        <input type="email" class="form-control" value="{{ current_user.email }}" disabled>
+                        <div class="form-text">Your email address is used for account verification and notifications.</div>
+                    </div>
+                    <div class="mb-3">
+                        {{ form.service_id.label(class="form-label") }}
+                        {% if form.service_id.errors %}
+                            {{ form.service_id(class="form-select is-invalid") }}
+                            <div class="invalid-feedback">
+                                {% for error in form.service_id.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            {{ form.service_id(class="form-select") }}
+                        {% endif %}
+                        <div class="form-text">Note: Changing your service type will require re-verification by an admin.</div>
+                    </div>
+                    <div class="mb-3">
+                        {{ form.description.label(class="form-label") }}
+                        {% if form.description.errors %}
+                            {{ form.description(class="form-control is-invalid", rows=4) }}
+                            <div class="invalid-feedback">
+                                {% for error in form.description.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            {{ form.description(class="form-control", rows=4) }}
+                        {% endif %}
+                        <div class="form-text">Describe your experience, skills, and specialties related to this service.</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            {{ form.experience.label(class="form-label") }}
+                            {% if form.experience.errors %}
+                                {{ form.experience(class="form-control is-invalid") }}
+                                <div class="invalid-feedback">
+                                    {% for error in form.experience.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                {{ form.experience(class="form-control") }}
+                            {% endif %}
+                            <div class="form-text">Number of years of experience in this field.</div>
+                        </div>
+                        <div class="col-md-6">
+                            {{ form.hourly_rate.label(class="form-label") }}
+                            {% if form.hourly_rate.errors %}
+                                {{ form.hourly_rate(class="form-control is-invalid") }}
+                                <div class="invalid-feedback">
+                                    {% for error in form.hourly_rate.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                {{ form.hourly_rate(class="form-control") }}
+                            {% endif %}
+                            <div class="form-text">Your hourly rate in USD ($).</div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        {{ form.address.label(class="form-label") }}
+                        {% if form.address.errors %}
+                            {{ form.address(class="form-control is-invalid") }}
+                            <div class="invalid-feedback">
+                                {% for error in form.address.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            {{ form.address(class="form-control") }}
+                        {% endif %}
+                        <div class="form-text">Your full address where you are based.</div>
+                    </div>
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            {{ form.phone.label(class="form-label") }}
+                            {% if form.phone.errors %}
+                                {{ form.phone(class="form-control is-invalid") }}
+                                <div class="invalid-feedback">
+                                    {% for error in form.phone.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                {{ form.phone(class="form-control") }}
+                            {% endif %}
+                            <div class="form-text">Your contact number for service-related communication.</div>
+                        </div>
+                        <div class="col-md-6">
+                            {{ form.pin_code.label(class="form-label") }}
+                            {% if form.pin_code.errors %}
+                                {{ form.pin_code(class="form-control is-invalid") }}
+                                <div class="invalid-feedback">
+                                    {% for error in form.pin_code.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                {{ form.pin_code(class="form-control") }}
+                            {% endif %}
+                            <div class="form-text">Your area PIN code helps match you with nearby service requests.</div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ form.certificate_name.label(class="form-label") }}
+                        {% if form.certificate_name.errors %}
+                            {{ form.certificate_name(class="form-control is-invalid") }}
+                            <div class="invalid-feedback">
+                                {% for error in form.certificate_name.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            {{ form.certificate_name(class="form-control") }}
+                        {% endif %}
+                        <div class="form-text">Name of your professional certificate or qualification.</div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        {{ form.certificate_file.label(class="form-label") }}
+                        {% if form.certificate_file.errors %}
+                            {{ form.certificate_file(class="form-control is-invalid") }}
+                            <div class="invalid-feedback">
+                                {% for error in form.certificate_file.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            {{ form.certificate_file(class="form-control") }}
+                        {% endif %}
+                        <div class="form-text">Upload a scanned copy of your certificate (PDF, JPG, JPEG, PNG).</div>
+                        {% if current_user.professional_profile and current_user.professional_profile.certificate_file %}
+                            <div class="mt-2">
+                                <small class="text-muted">Current certificate: {{ current_user.professional_profile.certificate_name }}</small>
+                                {% if current_user.professional_profile.certificate_verified %}
+                                    <span class="badge bg-success ms-2">Verified</span>
+                                {% else %}
+                                    <span class="badge bg-warning ms-2">Pending Verification</span>
+                                {% endif %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    {% if current_user.professional_profile and not current_user.professional_profile.is_verified %}
+                    <div class="alert alert-info mb-4">
+                        <i class="fas fa-info-circle me-2"></i> Your profile is currently pending verification by an admin. You will be notified once your profile is verified.
+                    </div>
+                    {% endif %}
+                    
+                    <div class="d-grid gap-2">
+                        {{ form.submit(class="btn btn-primary") }}
+                        <a href="{{ url_for('professional.dashboard') }}" class="btn btn-outline-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
